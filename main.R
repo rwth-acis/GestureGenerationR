@@ -3,8 +3,8 @@ library(tidyverse)
 library(s20x)
 # Read in data
 source("survey_983142_R_syntax_file.R")
-open_project_obj <- read.csv("../results/csvs/OpenProject.csv", header = TRUE)
-inven_tree_obj <- read.csv("../results/csvs/InvenTree.csv", header = TRUE)
+open_project_obj <- read.csv("OpenProject.csv", header = TRUE)
+inven_tree_obj <- read.csv("InvenTree.csv", header = TRUE)
 
 # Preprocess data
 col_names <- c("Emblem", "Adaptor", "Deitic", "OpenProject", "Objective", "System_Usefulness", "Information_Quality", "Interface_Quality")
@@ -76,38 +76,74 @@ formulas <- c(
 )
 models <- construct_models("Objective", formulas)
 top_models <- c()
+print("AICc for Objective")
+aictab(models, modnames = formulas)
 top_models[[1]] <- models[[3]]
-#aictab(models, modnames = formulas)
-#print(models[[3]])
+print("Best model =>")
+print(summary(top_models[[1]]))
 # Analysis Information Quality
 
 models <- construct_models("Information_Quality", formulas)
-#aictab(models, modnames = formulas)
-#print(summary(models[[6]]))
+print("AICc for Info Quality")
+aictab(models, modnames = formulas)
 top_models[[2]] <- models[[6]]
+print("Best model =>")
+print(summary(top_models[[2]]))
 
 models <- construct_models("Interface_Quality", formulas)
-#aictab(models, modnames = formulas)
-#print(summary(models[[6]]))
+print("AICc for Interface Quality")
+aictab(models, modnames = formulas)
 top_models[[3]] <- models[[6]]
+print("Best model =>")
+print(summary(top_models[[3]]))
 
 models <- construct_models("System_Usefulness", formulas)
-#aictab(models, modnames = formulas)
-#print(summary(models[[6]]))
+print("AICc for System Usefulness")
+aictab(models, modnames = formulas)
 top_models[[4]] <- models[[6]]
+print("Best model =>")
+print(summary(top_models[[4]]))
 
-
+print("Group means by Objective:")
 # Means
 means <- combined_df |>
 	group_by(Adaptor) |>
 	summarise(
+		mean = mean(Objective)
+	)
+print(means)
+
+print("Group means by Info Quality:")
+# Means
+means <- combined_df |>
+	group_by(Adaptor,OpenProject) |>
+	summarise(
+		mean = mean(Information_Quality)
+	)
+print(means)
+
+print("Group means by Interface Quality:")
+# Means
+means <- combined_df |>
+	group_by(Adaptor,OpenProject) |>
+	summarise(
+		mean = mean(Interface_Quality)
+	)
+print(means)
+
+print("Group means by System Usefulness:")
+# Means
+means <- combined_df |>
+	group_by(Adaptor,OpenProject) |>
+	summarise(
 		mean = mean(System_Usefulness)
 	)
+print(means)
 
-
+print("Normality checks")
 # Normality check
 for (i in 1:4) {
-	shapiro.test(top_models[[i]]$residuals)
+	print(shapiro.test(top_models[[i]]$residuals))
 }
 
 for (i in 1:4) {
@@ -117,7 +153,7 @@ for (i in 1:4) {
 	dev.off()
 }
 
-
+print("Homoscedasticity check")
 # Homoscedasticity
 for (i in 1:4) {
 	levene.test(top_models[[i]])
@@ -153,15 +189,20 @@ sus_score <- apply(sus, 1, function(score) 2.5 * (score - 1))
 sus_score <- apply(sus_score, 2, sum)
 sus_score <- mean(sus_score)
 
+print("Self Assessment Box Plots")
 # Self Assessment
 self <- data[,9:17]
 self_box <- boxplot_data(self)
+print(self_box)
 
+print("Gesture Assessment Box Plots")
 # Gestures
 gestures <- data[,62:68]
 gesture_box <- boxplot_data(gestures)
+print(gesture_box)
 
+print("LLM Experience Box Plots")
 # LLM Experience
 llm <- data[,76:81]
 llm_box <- boxplot_data(llm)
-llm_box
+print(llm_box)
