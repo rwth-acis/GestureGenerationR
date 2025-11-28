@@ -1,0 +1,6 @@
+library(AICcmodavg)
+library(tidyverse)
+library(s20x)
+source("Read.R")
+source("ModelConstruction.R")
+source("Prerequisites.R")
