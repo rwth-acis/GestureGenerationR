@@ -62,6 +62,22 @@ construct_models <- function(dependent, vector_formulars) {
 	return(models)
 }
 
+get_top_aicc <- function(measur, formulas) {
+	models <- construct_models(measur, formulas)
+	aic <- aictab(models, modnames = formulas)
+	top_model_formula <- aic[[1,1]]
+	for (model in models) {
+		model_formula <- toString(model$terms[[3]])
+		model_formula_s <- str_split(model_formula, ", ")[[1]]
+		if(length(model_formula_s) == 3) {
+			model_formula <- paste(model_formula_s[[2]],model_formula_s[[1]],model_formula_s[[3]])
+		}
+		if(model_formula == top_model_formula) {
+			return(model)
+		}
+	}
+}
+
 formulas <- c(
 	"Deitic",
 	"Emblem",
@@ -74,35 +90,14 @@ formulas <- c(
 	"Deitic * Emblem * Adaptor",
 	"Deitic * Emblem * Adaptor + OpenProject"
 )
-models <- construct_models("Objective", formulas)
+i <- 1
 top_models <- c()
-print("AICc for Objective")
-aictab(models, modnames = formulas)
-top_models[[1]] <- models[[3]]
-print("Best model =>")
-print(summary(top_models[[1]]))
-# Analysis Information Quality
-
-models <- construct_models("Information_Quality", formulas)
-print("AICc for Info Quality")
-aictab(models, modnames = formulas)
-top_models[[2]] <- models[[6]]
-print("Best model =>")
-print(summary(top_models[[2]]))
-
-models <- construct_models("Interface_Quality", formulas)
-print("AICc for Interface Quality")
-aictab(models, modnames = formulas)
-top_models[[3]] <- models[[6]]
-print("Best model =>")
-print(summary(top_models[[3]]))
-
-models <- construct_models("System_Usefulness", formulas)
-print("AICc for System Usefulness")
-aictab(models, modnames = formulas)
-top_models[[4]] <- models[[6]]
-print("Best model =>")
-print(summary(top_models[[4]]))
+for(measure in c("Objective", "Information_Quality", "Interface_Quality", "System_Usefulness")) {
+	print(paste("Top model for ", measure))
+	top_models[[i]] <- get_top_aicc(measure,formulas)
+	print(summary(top_models[[i]]))
+	i <- i+1
+}
 
 print("Group means by Objective:")
 # Means
